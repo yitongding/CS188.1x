@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -61,6 +61,24 @@ class SearchProblem:
         """
         util.raiseNotDefined()
 
+class Node:
+    def __init__(self, state, path, cost):
+        self.state = state
+        self.path = path
+        self.cost = cost
+
+    def __hash__(self):
+        # return hash(self.state + self.path)
+        return hash(self.state)
+
+    def __eq__(self, other):
+        # return self.state == other.state and self.path == other.path
+        return self.state == other.state
+
+    def __ne__(self, other):
+        # return self.state != other.state or self.path != other.path
+        return self.state != other.state
+
 
 def tinyMazeSearch(problem):
     """
@@ -71,6 +89,33 @@ def tinyMazeSearch(problem):
     s = Directions.SOUTH
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
+
+def genericSearch(problem, container):
+    closed = set()
+    fringe = container
+
+    start_state = problem.getStartState()
+    fringe.push(Node(start_state, tuple(), 0))
+
+    while True:
+        if fringe.isEmpty():
+            return list()
+
+        node = fringe.pop()
+
+        if problem.isGoalState(node.state):
+            return list(node.path)
+
+        if node not in closed:
+            closed.add(node)
+            children = problem.getSuccessors(node.state)
+            for child in children:
+                state = child[0]
+                direction = child[1]
+                path = node.path + (direction,)
+                cost = node.cost + child[2]
+                child_node = Node(state, path, cost)
+                fringe.push(child_node)
 
 def depthFirstSearch(problem):
     """
@@ -87,17 +132,21 @@ def depthFirstSearch(problem):
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    return genericSearch(problem, util.Stack())
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    return genericSearch(problem, util.Queue())
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    def priorityFunction(node):
+        return node.cost
+
+    container = util.PriorityQueueWithFunction(priorityFunction)
+    return genericSearch(problem, container)
 
 def nullHeuristic(state, problem=None):
     """
@@ -109,7 +158,11 @@ def nullHeuristic(state, problem=None):
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    def priorityFunction(node):
+        return node.cost + heuristic(node.state, problem)
+    container = util.PriorityQueueWithFunction(priorityFunction)
+    return genericSearch(problem, container)
 
 
 # Abbreviations
